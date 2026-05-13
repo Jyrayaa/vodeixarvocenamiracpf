@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta CPF</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0e14; color: #e8f0f7; font-family: 'Segoe UI', sans-serif; min-height: 100vh; padding: 20px 16px 40px; }
+.wrap { max-width: 480px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 28px; }
+.badge { display: inline-block; background: rgba(0,212,170,.12); border: 1px solid rgba(0,212,170,.3); border-radius: 20px; padding: 4px 14px; font-size: 11px; color: #00d4aa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+h1 { font-size: 24px; font-weight: 700; }
+h1 span { color: #00d4aa; }
+.sub { font-size: 13px; color: #5a7a90; margin-top: 6px; }
+.card { background: #111820; border: 1px solid #1e2a36; border-radius: 16px; padding: 22px; }
+.lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #00d4aa; margin-bottom: 10px; }
+.inp-wrap { position: relative; margin-bottom: 14px; }
+input { width: 100%; background: #0a0e14; border: 1.5px solid #1e2a36; border-radius: 10px; padding: 14px 44px 14px 16px; font-size: 20px; font-weight: 700; letter-spacing: 2px; color: #e8f0f7; outline: none; -webkit-appearance: none; }
+input:focus { border-color: #00d4aa; }
+.x-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #5a7a90; font-size: 18px; cursor: pointer; display: none; }
+.btn { width: 100%; background: linear-gradient(135deg, #00d4aa, #0099ff); border: none; border-radius: 10px; padding: 15px; font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #0a0e14; cursor: pointer; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.alert { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13px; display: none; gap: 8px; align-items: flex-start; }
+.alert.show { display: flex; }
+.alert.err { background: rgba(255,71,87,.1); border: 1px solid rgba(255,71,87,.3); color: #ff8a95; }
+.result { margin-top: 20px; display: none; }
+.result.show { display: block; }
+.res-head { display: flex; align-items: center; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid #1e2a36; margin-bottom: 4px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #2ed573; }
+.res-title { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #5a7a90; }
+.row { padding: 12px 0; border-bottom: 1px solid #161f28; }
+.row:last-child { border-bottom: none; }
+.rk { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #5a7a90; margin-bottom: 4px; }
+.rv { font-size: 15px; font-weight: 500; word-break: break-word; }
+.rv.green { color: #00d4aa; }
+.rv.warn { color: #ff6b35; }
+.hist-sec { margin-top: 24px; }
+.hist-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.hist-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #5a7a90; }
+.clr-btn { background: none; border: none; color: #5a7a90; font-size: 12px; cursor: pointer; }
+.hist-item { background: #111820; border: 1px solid #1e2a36; border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 8px; }
+.hi-cpf { font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+.hi-nome { font-size: 11px; color: #5a7a90; margin-top: 2px; }
+.empty { text-align: center; color: #5a7a90; font-size: 12px; padding: 20px; border: 1px dashed #1e2a36; border-radius: 10px; }
+.disc { margin-top: 20px; padding: 12px 14px; background: rgba(255,107,53,.06); border: 1px solid rgba(255,107,53,.2); border-radius: 10px; font-size: 11px; color: #5a7a90; line-height: 1.6; }
+.disc strong { color: #ff6b35; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="badge">🛡 Anti-golpe</div>
+    <h1>Consulta <span>CPF</span></h1>
+    <p class="sub">Verifique dados antes de fechar qualquer negócio</p>
+  </div>
+  <div class="card">
+    <div class="lbl">// Informe o CPF</div>
+    <div class="inp-wrap">
+      <input id="cpfIn" type="text" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" autocomplete="off">
+      <button class="x-btn" id="xBtn" onclick="clearIn()">✕</button>
+    </div>
+    <button class="btn" id="buscarBtn" onclick="buscar()">🔍 &nbsp;Consultar</button>
+    <div class="alert err" id="errBox"><span>⚠️</span><span id="errMsg"></span></div>
+    <div class="result" id="result">
+      <div class="res-head"><div class="dot"></div><div class="res-title">Dados encontrados</div></div>
+      <div id="resBody"></div>
+    </div>
+  </div>
+  <div class="hist-sec">
+    <div class="hist-head">
+      <span class="hist-lbl">// Histórico</span>
+      <button class="clr-btn" onclick="clearHist()">Limpar</button>
+    </div>
+    <div id="histList"></div>
+  </div>
+  <div class="disc"><strong>⚠️ Uso pessoal:</strong> Ferramenta para sua proteção contra golpes. Use apenas para verificar pessoas suspeitas.</div>
+</div>
+<script>
+var API = 'https://usuarioconsulta.store/proxy.php?cpf=';
+var inp = document.getElementById('cpfIn');
+var xBtn = document.getElementById('xBtn');
+var hist = [];
+try { hist = JSON.parse(localStorage.getItem('h') || '[]'); } catch(e){}
+
+inp.addEventListener('input', function() {
+  inp.value = mask(inp.value);
+  xBtn.style.display = inp.value ? 'block' : 'none';
+});
+inp.addEventListener('keydown', function(e) { if(e.key==='Enter') buscar(); });
+
+function mask(v) {
+  v = v.replace(/\D/g,'').slice(0,11);
+  if(v.length>9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
+  if(v.length>6) return v.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+  if(v.length>3) return v.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+  return v;
+}
+function fmt(cpf) { return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'); }
+function clearIn() {
+  inp.value=''; xBtn.style.display='none';
+  document.getElementById('errBox').classList.remove('show');
+  document.getElementById('result').classList.remove('show');
+}
+function showErr(msg) {
+  document.getElementById('errMsg').textContent = msg;
+  document.getElementById('errBox').classList.add('show');
+  document.getElementById('result').classList.remove('show');
+}
+
+function buscar() {
+  document.getElementById('errBox').classList.remove('show');
+  var raw = inp.value.replace(/\D/g,'');
+  if(raw.length !== 11) { showErr('CPF inválido. Digite os 11 dígitos.'); return; }
+  var btn = document.getElementById('buscarBtn');
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
+  fetch(API + raw)
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if(!json || json.status==='not_found' || !json.resultado) {
+        showErr('CPF não encontrado na base de dados.'); return;
+      }
+      var res = json.resultado;
+      var d = res.dados || {};
+      if(!d || Object.keys(d).length===0) { showErr('Nenhum dado encontrado.'); return; }
+      var payload = { dados:d, emails:res.emails||[], telefones:res.telefones||[], enderecos:res.enderecos||[], pis:res.pis||[] };
+      render(payload, raw);
+      saveHist(raw, payload);
+    })
+    .catch(function(e) {
+      showErr('Erro ao consultar. Abra o site pelo navegador, não como arquivo local.');
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.innerHTML = '🔍 &nbsp;Consultar';
+    });
+}
+
+function render(payload, cpf) {
+  var d = payload.dados;
+  var rows = [];
+  function add(label, keys, cls) {
+    for(var i=0;i<keys.length;i++) {
+      var k=keys[i];
+      if(d[k]!=null && d[k]!=='') { rows.push({k:label,v:String(d[k]),c:cls||''}); return; }
+    }
+  }
+  rows.push({k:'CPF',v:fmt(cpf),c:'green'});
+  add('Nome',['NOME']);
+  add('Sexo',['SEXO']);
+  add('Nascimento',['NASC']);
+  add('Mãe',['NOME_MAE']);
+  add('Pai',['NOME_PAI']);
+  add('RG',['RG']);
+  add('Renda',['RENDA']);
+  add('Título Eleitor',['TITULO_ELEITOR']);
+  (payload.emails||[]).forEach(function(e,i) {
+    if(e.EMAIL) rows.push({k:'E-mail '+(i+1),v:e.EMAIL+(e.EMAIL_SCORE?' ('+e.EMAIL_SCORE+')':''),c:''});
+  });
+  (payload.telefones||[]).forEach(function(t,i) {
+    if(t.TELEFONE) rows.push({k:'Telefone '+(i+1),v:'('+t.DDD+') '+t.TELEFONE,c:''});
+  });
+  (payload.enderecos||[]).forEach(function(e,i) {
+    var p=[e.LOGR_TIPO,e.LOGR_NOME,e.LOGR_NUMERO,e.BAIRRO,e.CIDADE,e.UF,e.CEP].filter(Boolean);
+    if(p.length) rows.push({k:'Endereço '+(i+1),v:p.join(', '),c:''});
+  });
+  (payload.pis||[]).forEach(function(p,i) {
+    var v=typeof p==='object'?Object.values(p).filter(Boolean).join(', '):String(p);
+    if(v) rows.push({k:'PIS '+(i+1),v:v,c:''});
+  });
+  document.getElementById('resBody').innerHTML = rows.map(function(r) {
+    return '<div class="row"><div class="rk">'+r.k+'</div><div class="rv '+r.c+'">'+r.v+'</div></div>';
+  }).join('');
+  var res = document.getElementById('result');
+  res.classList.add('show');
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function saveHist(cpf, payload) {
+  var nome = payload.dados.NOME || '—';
+  hist = hist.filter(function(h){return h.cpf!==cpf;});
+  hist.unshift({cpf:cpf,nome:nome,payload:payload});
+  if(hist.length>10) hist.pop();
+  try { localStorage.setItem('h', JSON.stringify(hist)); } catch(e){}
+  renderHist();
+}
+function renderHist() {
+  var el = document.getElementById('histList');
+  if(!hist.length) { el.innerHTML='<div class="empty">Nenhuma consulta ainda</div>'; return; }
+  el.innerHTML = hist.map(function(h) {
+    return '<div class="hist-item" onclick=\'reHist('+JSON.stringify(h)+')\'>'+
+      '<div><div class="hi-cpf">'+fmt(h.cpf)+'</div><div class="hi-nome">'+h.nome+'</div></div>'+
+      '<span style="color:#5a7a90">&#8250;</span></div>';
+  }).join('');
+}
+function reHist(h) {
+  inp.value = fmt(h.cpf);
+  xBtn.style.display='block';
+  document.getElementById('errBox').classList.remove('show');
+  render(h.payload, h.cpf);
+}
+function clearHist() {
+  hist=[];
+  try { localStorage.removeItem('h'); } catch(e){}
+  renderHist();
+}
+renderHist();
+</script>
+</body>
+</html>
